@@ -1,0 +1,182 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {},
+        "options": {}
+      },
+      "id": "94587fb5-5abe-4b23-976f-684bef1786a1",
+      "name": "Outlook Trigger",
+      "type": "n8n-nodes-base.microsoftOutlookTrigger",
+      "typeVersion": 1,
+      "position": [
+        160,
+        160
+      ],
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "giWhsT4mNv71iV05",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.from }}",
+              "operation": "notContains",
+              "value2": "no-reply"
+            },
+            {
+              "value1": "={{ $json.from }}",
+              "operation": "contains",
+              "value2": "=[AUTO-REPLY]"
+            }
+          ]
+        }
+      },
+      "id": "7db68278-5d91-4826-931c-0726f9a95379",
+      "name": "Filter Spam",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [
+        368,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "subject": "=[AUTO-REPLY] RE: {{ $('Outlook Trigger').item.json.subject }}",
+        "bodyContent": "={{ $json.output }}",
+        "toRecipients": "={{ $('Outlook Trigger').item.json.from }}",
+        "additionalFields": {}
+      },
+      "id": "aa976330-a9ae-4f9f-9ca4-50a04eca2461",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 1,
+      "position": [
+        912,
+        144
+      ],
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "giWhsT4mNv71iV05",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Responde este email:\n\nASUNTO:\n{{$node[\"Outlook Trigger\"].json[\"subject\"]}}\n\nMENSAJE:\n{{$node[\"Outlook Trigger\"].json[\"bodyPreview\"]}}\n\nREMITENTE:\n{{ $json.from }}\n\nEres un asistente profesional que responde correos electrónicos automáticamente.\n\nTu objetivo es redactar respuestas claras, educadas y naturales como si fueras una persona real.\n\nREGLAS IMPORTANTES:\n- Responde SIEMPRE en el mismo idioma del email recibido.\n- Sé breve y directo (máximo 150-200 palabras).\n- Mantén un tono profesional, amable y natural.\n- No inventes información. Si falta información, pide aclaración.\n- No digas que eres una IA.\n- No uses frases robóticas o genéricas.\n- No repitas el email del usuario.\n- No añadas saludos excesivos.\n- Evita listas salvo que sean necesarias.\n\nESTILO:\n- Escribe como un profesional de oficina.\n- Tono humano, fluido y natural.\n- Estructura simple: saludo breve + respuesta + cierre corto.\n\nOBJETIVO:\nResponder emails de forma útil, coherente y lista para enviar sin revisión humana.",
+        "options": {
+          "systemMessage": ""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        624,
+        144
+      ],
+      "id": "b1ac3cf2-1721-451a-a1af-2a8ac57446e5",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-5",
+          "mode": "list",
+          "cachedResultName": "gpt-5"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        624,
+        352
+      ],
+      "id": "b1e20934-5509-4683-81e9-26a3cc5a8687",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "Xxfrbv2cZKOktvuR",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Outlook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Filter Spam",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Spam": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "bede802e-bf36-4239-b3b9-8c351f22fcd6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2f481f5b8707dbfd1fd6a04e5c8e2640ddd5efa2efdd01ecd149b72e3ab4436c"
+  },
+  "id": "8AJnBOBzEkV1Iiy2",
+  "tags": []
+}
